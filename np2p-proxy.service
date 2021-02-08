@@ -1,0 +1,13 @@
+[Unit]
+Description=NoProvider2Push Enqueued Proxy
+After=network.target
+
+[Service]
+User=user
+WorkingDirectory=/opt/np2p-proxy
+ExecStart=/opt/np2p-proxy/venv/bin/gunicorn -b localhost:5001 -w 2 server:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
