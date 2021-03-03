@@ -3,9 +3,9 @@ Description=NoProvider2Push Enqueued Proxy
 After=network.target
 
 [Service]
-User=user
+User=forwarder
 WorkingDirectory=/opt/np2p-proxy
-ExecStart=/opt/np2p-proxy/venv/bin/gunicorn -b localhost:5001 -w 2 server:app
+ExecStart=/opt/np2p-proxy/venv/bin/gunicorn -b localhost:5001 -w 2 rewrite-proxy:app
 Restart=always
 
 [Install]

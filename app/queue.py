@@ -1,11 +1,12 @@
 from app import app, db
 from app.utils import pdebug
 from app.models import Distributor, Message
-from config import Config
 from threading import Thread
 from datetime import datetime
 import requests
 requests.urllib3.disable_warnings()
+
+to_remove = []
 
 def add(ip, port, uri, message):
     pdebug(f"Add pending message to {ip}")
@@ -14,7 +15,7 @@ def add(ip, port, uri, message):
         pdebug("New pending distrib")
         distrib = Distributor(ip=ip, port=port)
         db.session.add(distrib)
-    if (len(distrib.messages.all()) > Config.N_MAX_MESSAGES):
+    if (len(distrib.messages.all()) > app.config["N_MAX_MESSAGES"]):
         return False
     message = Message(uri=uri, content=message, distributor=distrib)
     db.session.add(message)
@@ -22,22 +23,31 @@ def add(ip, port, uri, message):
     return True
 
 def try_again():
-    pdebug("try_again")
     for d in Distributor.query.all():
-        pdebug(f"trying {d.ip}")
+        pdebug(f"Trying again {d.ip}")
         try:
             rep = requests.get(
                 f"http://{d.ip}:{d.port}/",
                 timeout=1
             )
             if rep.ok and rep.content == b"ok":
-                for m in d.messages:
-                    resend_async(d.ip, d.port, m.uri, m.content)
+                pdebug(f"{d.ip} is reachable")
+                threads = []
+                for m in d.messages.all():
+                    threads.append(resend_async(d, m))
+                for t in threads:
+                    t.join()
+                for m in to_remove:
+                    pdebug(f"removing {m.uri}")
+                    db.session.delete(m)
                 if d.messages.all() == []:
                     pdebug(f"Remove pending distrib {d.ip}")
                     db.session.delete(d)
                 db.session.commit()
-        except:
+            else:
+                pdebug(f"{d.ip} is not reachable")
+        except Exception as e:
+            pdebug(e)
             pass
     return True
 
@@ -72,7 +82,6 @@ def send(ip, port, uri, message):
     add(ip, port, uri, message)
 
 def send_async(ip, port, uri, message):
-    pdebug(f"send_async to {ip}:{port}/{uri}")
     thread = Thread(target=send, args=(
         ip,
         port,
@@ -91,19 +100,20 @@ def resend(distrib, message):
             timeout = app.config["REQ_TIMEOUT"]
         )
         if rep.ok and rep.content == b"ok":
-            pdebug(f"remove pending message to {message.uri}")
-            db.session.delete(message)
+            pdebug(f"pending message to {message.uri} sent")
+            to_remove.append(message)
             return True
+        else:
+            pdebug(f"cannot send pending message to {distrib.ip}")
     except:
         pass
-    pdebug(f"Cannot send to {ip}")
-    add(ip, port, uri, message)
+    pdebug(f"Cannot send to {distrib.ip}")
 
 def resend_async(distrib, message):
-    pdebug(f"resend to {distrib.ip}:{distrib.port}/{message.uri}")
     thread = Thread(target=resend, args=(
         distrib,
         message
     ))
     thread.daemon = True
     thread.start()
+    return thread

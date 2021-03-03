@@ -10,6 +10,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+logfile = open(Config.LOG_FILE, "a")
 cron = BackgroundScheduler(daemon = True)
 cron.start()
 

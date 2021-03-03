@@ -19,3 +19,5 @@ class Config(object):
     REQ_TIMEOUT = 10
     MAX_TRY_AGAIN_INSTANCES = 1
     LOCK = os.path.join(basedir, "lock")
+    LOG = True # Verbose !
+    LOG_FILE = os.path.join(basedir, 'np2p.log')
