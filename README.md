@@ -13,6 +13,7 @@ Dependencies are in requirements.txt.
 ```
 mkdir venv
 virtualenv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
