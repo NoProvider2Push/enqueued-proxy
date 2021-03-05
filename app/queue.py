@@ -39,10 +39,18 @@ def try_again():
                     t.join()
                 for m in to_remove:
                     pdebug(f"removing {m.uri}")
-                    db.session.delete(m)
+                    try:
+                        db.session.delete(m)
+                    except Exception as e:
+                        pdebug(e)
+                        pass
                 if d.messages.all() == []:
                     pdebug(f"Remove pending distrib {d.ip}")
-                    db.session.delete(d)
+                    try:
+                        db.session.delete(d)
+                    except Exception as e:
+                        pdebug(e)
+                        pass
                 db.session.commit()
             else:
                 pdebug(f"{d.ip} is not reachable")
