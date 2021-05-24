@@ -30,7 +30,7 @@ def try_again():
                 f"http://{d.ip}:{d.port}/",
                 timeout=1
             )
-            if rep.ok and rep.content == b"ok":
+            if rep.ok and rep.content == b"{\"unifiedpush\":{\"version\":1}}":
                 pdebug(f"{d.ip} is reachable")
                 threads = []
                 for m in d.messages.all():
@@ -82,7 +82,7 @@ def send(ip, port, uri, message):
             data = message,
             timeout = app.config["REQ_TIMEOUT"]
         )
-        if rep.ok and rep.content == b"ok":
+        if rep.ok and rep.content == b"{\"unifiedpush\":{\"version\":1}}":
             return True
     except:
         pass
@@ -107,7 +107,7 @@ def resend(distrib, message):
             data = message.content,
             timeout = app.config["REQ_TIMEOUT"]
         )
-        if rep.ok and rep.content == b"ok":
+        if rep.ok and rep.content == b"{\"unifiedpush\":{\"version\":1}}":
             pdebug(f"pending message to {message.uri} sent")
             to_remove.append(message)
             return True

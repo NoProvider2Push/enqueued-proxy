@@ -8,14 +8,14 @@ from flask import request
 def proxy(ip, port, uri):
     if request.method == "GET":
         pdebug("Routes: get")
-        return "{}"
+        return "{\"unifiedpush\":{\"version\":1}}"
     if not (
         (ip in Config.ALLOWED_IP or Config.ALLOWED_IP == "all")
         and (int(port) in Config.ALLOWED_PORTS or Config.ALLOWED_PORTS == "all")
     ):
         pdebug("Routes: not allowed")
-        return "{}"
+        return "{\"unifiedpush\":{\"version\":1}}"
     message=request.get_data()
     send_async(ip, port, uri, message)
-    return "{}"
+    return "{\"Status\":\"Accepted\"}"
 

@@ -44,7 +44,7 @@ server {
     location / {
 			proxy_pass http://127.0.0.1:5001/;
       proxy_buffering  off;
-      client_max_body_size  5M;
+      client_max_body_size  4K;
     }
 
     access_log /var/log/nginx/relay.example.tld-access.log;
